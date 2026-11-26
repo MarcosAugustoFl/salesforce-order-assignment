@@ -101,6 +101,15 @@ This option also sends a late, older event (expect `IGNORED`) and a tampered bod
 
 End state: `ord_77d1e9` is **sent**, `ord_52ab10` is **cleared**, and `evt_001` is stored once with a delivery count of 2. Running either script again returns `DUPLICATE` for every event.
 
+**Send your own event** (status, occurredAt, and optionally order id and event id):
+```bash
+./scripts/curl/send-event.sh cleared 2026-10-13T09:00:00Z                 # newer  → APPLIED
+./scripts/curl/send-event.sh inProgress 2026-10-01T09:00:00Z              # older  → IGNORED
+./scripts/curl/send-event.sh sent 2026-10-12T14:03:11Z ord_77d1e9 evt_004 # repeat → DUPLICATE
+BAD_SIGNATURE=1 ./scripts/curl/send-event.sh cleared 2026-10-13T09:00:00Z # forged → 401
+./scripts/show-state.sh                                                   # orders and event history
+```
+
 **Reset:** `sf apex run --file scripts/apex/reset-demo-data.apex --target-org order-assignment`
 
 ---
@@ -212,5 +221,7 @@ Given the 2–4 hour budget, I prioritized correctness of the event flow over th
 | `scripts/apex/simulate-sample-events.apex` | Sends the sample events through anonymous Apex |
 | `scripts/apex/reset-demo-data.apex` | Deletes the demo data |
 | `scripts/curl/send-sample-events.sh` | Sends the sample events over HTTPS |
+| `scripts/curl/send-event.sh` | Sends one custom event (any status, time, order, id) |
+| `scripts/show-state.sh` | Prints orders and event history from the org |
 | `scripts/data/sample-events.ndjson` | The spec's sample events, one per line |
 | `docs/DESIGN.md` | Detailed design, error handling, code organization |
