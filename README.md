@@ -37,6 +37,7 @@ Detailed design and tradeoffs: [`docs/DESIGN.md`](docs/DESIGN.md)
 4. [Key decisions](#key-decisions)
 5. [Questions I would have asked](#questions-i-would-have-asked)
 6. [What I left out](#what-i-left-out)
+7. [Use of AI](#use-of-ai)
 
 ---
 
@@ -204,6 +205,14 @@ Given the 2–4 hour budget, I prioritized correctness of the event flow over th
 - **Nightly reconciliation**: automatic backfill of active accounts instead of a manual button.
 - **Richer UI**: a status timeline component. Standard related lists meet the brief.
 - **Secret rotation**, **subscription id validation**, and the **OAuth app as metadata** (documented as a manual step).
+
+---
+
+## Use of AI
+
+I used an AI coding assistant substantially throughout this exercise, as the brief allows. It helped draft code, tests, scripts and documentation, and speed up iteration.
+
+I set the direction and made the key decisions: the data model, storing an event history for agents, the backfill for orders that never sent an event, `occurredAt` as the source of truth, showing order lines, and the authenticated endpoint. I also reviewed, deployed and tested everything in a Developer Edition org, and I can walk through any part of the code and the tradeoffs behind it.
 
 ---
 
