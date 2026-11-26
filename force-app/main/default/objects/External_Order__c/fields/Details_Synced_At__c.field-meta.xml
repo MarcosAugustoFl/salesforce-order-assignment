@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Details_Synced_At__c</fullName>
+    <description>When amount, participant and lines were last read from GET /orders/{id}. Blank = known only from events so far.</description>
+    <label>Details Synced At</label>
+    <required>false</required>
+    <type>DateTime</type>
+</CustomField>

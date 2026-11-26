@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status_As_Of__c</fullName>
+    <description>Timestamp of the information the current status came from (event occurredAt or Orders updatedAt). Anything older is ignored, which is how out-of-order events are handled.</description>
+    <label>Status As Of</label>
+    <required>false</required>
+    <type>DateTime</type>
+</CustomField>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Orders_Account_Id__c</fullName>
+    <caseSensitive>true</caseSensitive>
+    <description>Account id in the Orders system (e.g. acct_8f3c2a). Upsert key for the integration.</description>
+    <externalId>true</externalId>
+    <label>Orders Account Id</label>
+    <length>40</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

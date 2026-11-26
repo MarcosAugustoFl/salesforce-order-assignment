@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Outcome__c</fullName>
+    <description>Applied = changed the order status. Ignored = arrived after newer information (out of order) and did not change it.</description>
+    <label>Outcome</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Applied</fullName><default>false</default><label>Applied</label></value>
+            <value><fullName>Ignored</fullName><default>false</default><label>Ignored (older)</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
