@@ -9,6 +9,7 @@
 #   ./scripts/curl/send-event.sh sent 2026-10-12T14:03:11Z ord_77d1e9 evt_004        # same id -> DUPLICATE
 #   ./scripts/curl/send-event.sh inProgress 2026-11-01T10:00:00Z ord_brand_new       # new order is created
 #   BAD_SIGNATURE=1 ./scripts/curl/send-event.sh cleared 2026-10-13T09:00:00Z        # -> 401
+#   ACCOUNT=acct_new ./scripts/curl/send-event.sh inProgress 2026-11-01T10:00:00Z ord_x  # order for a new account
 #   ORG=my-alias ./scripts/curl/send-event.sh ...                                    # another org alias
 #
 # Status: created | inProgress | waitingForParticipant | sent | cleared | returned
@@ -19,6 +20,8 @@ STATUS="$1"
 OCCURRED_AT="$2"
 ORDER_ID="${3:-ord_77d1e9}"
 EVENT_ID="${4:-evt_live_$(date +%s)}"
+ACCOUNT="${ACCOUNT:-acct_8f3c2a}"
+ACCOUNT_FRIENDLY="${ACCOUNT_FRIENDLY:-$([ "$ACCOUNT" = acct_8f3c2a ] && echo AC-260914-017-2231 || echo "AC-$ACCOUNT")}"
 ORG="${ORG:-order-assignment}"
 SECRET="${ORDERS_WEBHOOK_SECRET:-orders-takehome-2026}"
 
@@ -26,11 +29,11 @@ ORG_JSON="$(sf org display --target-org "$ORG" --json 2>/dev/null)"
 TOKEN="$(printf '%s' "$ORG_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["accessToken"])')"
 INSTANCE="$(printf '%s' "$ORG_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["instanceUrl"])')"
 
-BODY="{\"subscriptionId\":\"sub_a1b2c3d4e5f67890abcdef12\",\"event\":{\"id\":\"$EVENT_ID\",\"type\":\"order.$STATUS\",\"occurredAt\":\"$OCCURRED_AT\",\"version\":\"1.0\"},\"data\":{\"orderId\":\"$ORDER_ID\",\"orderFriendlyId\":\"OR-$ORDER_ID\",\"accountId\":\"acct_8f3c2a\",\"accountFriendlyId\":\"AC-260914-017-2231\"}}"
+BODY="{\"subscriptionId\":\"sub_a1b2c3d4e5f67890abcdef12\",\"event\":{\"id\":\"$EVENT_ID\",\"type\":\"order.$STATUS\",\"occurredAt\":\"$OCCURRED_AT\",\"version\":\"1.0\"},\"data\":{\"orderId\":\"$ORDER_ID\",\"orderFriendlyId\":\"OR-$ORDER_ID\",\"accountId\":\"$ACCOUNT\",\"accountFriendlyId\":\"$ACCOUNT_FRIENDLY\"}}"
 KEY="$SECRET"; [ -n "${BAD_SIGNATURE:-}" ] && KEY="wrong-secret"
 SIGNATURE="$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$KEY" | awk '{print $NF}')"
 
-echo "→ $EVENT_ID  order.$STATUS  occurredAt=$OCCURRED_AT  order=$ORDER_ID"
+echo "→ $EVENT_ID  order.$STATUS  occurredAt=$OCCURRED_AT  order=$ORDER_ID  account=$ACCOUNT"
 curl -sS -X POST "$INSTANCE/services/apexrest/orders/events" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
