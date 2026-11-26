@@ -1,0 +1,545 @@
+{
+  "info": {
+    "name": "Orders \u2192 Salesforce webhook",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Sends signed Orders events to the deployed Apex REST endpoint.\n\nSetup: run scripts/postman/make-environment.sh, import the generated environment and this collection, select the environment.\n\nThe collection's pre-request script signs every request automatically (HMAC-SHA256 of the exact body with the shared secret), so you can edit bodies freely."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 1. A fresh event id for bodies that use {{eventId}} (so custom events are never accidental duplicates).",
+          "pm.variables.set('eventId', 'evt_live_' + Date.now());",
+          "// 2. Sign the exact bytes that will be sent: hex(HMAC-SHA256(body, shared secret)).",
+          "const body = pm.variables.replaceIn(pm.request.body ? pm.request.body.raw : '');",
+          "const secret = pm.variables.get('webhookSecret');",
+          "pm.request.headers.upsert({ key: 'Orders-Signature', value: CryptoJS.HmacSHA256(body, secret).toString(CryptoJS.enc.Hex) });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "webhookSecret",
+      "value": "orders-takehome-2026",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Sample sequence (run in order on a clean org)",
+      "item": [
+        {
+          "name": "1. evt_001 inProgress",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('outcome is APPLIED', () => pm.expect(pm.response.json().outcome).to.eql('APPLIED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Spec sample payload, sent verbatim.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"evt_001\",\n    \"type\": \"order.inProgress\",\n    \"occurredAt\": \"2026-10-10T10:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "2. evt_002 waitingForParticipant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('outcome is APPLIED', () => pm.expect(pm.response.json().outcome).to.eql('APPLIED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Spec sample payload, sent verbatim.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"evt_002\",\n    \"type\": \"order.waitingForParticipant\",\n    \"occurredAt\": \"2026-10-11T10:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "3. evt_001 again (duplicate)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('outcome is DUPLICATE', () => pm.expect(pm.response.json().outcome).to.eql('DUPLICATE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Spec sample payload, sent verbatim.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"evt_001\",\n    \"type\": \"order.inProgress\",\n    \"occurredAt\": \"2026-10-10T10:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "4. evt_004 sent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('outcome is APPLIED', () => pm.expect(pm.response.json().outcome).to.eql('APPLIED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Spec sample payload, sent verbatim.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"evt_004\",\n    \"type\": \"order.sent\",\n    \"occurredAt\": \"2026-10-12T14:03:11Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "5. evt_003 cleared (other order, arrives late)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('outcome is APPLIED', () => pm.expect(pm.response.json().outcome).to.eql('APPLIED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Spec sample payload, sent verbatim.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"evt_003\",\n    \"type\": \"order.cleared\",\n    \"occurredAt\": \"2026-10-09T09:41:27Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_52ab10\",\n    \"orderFriendlyId\": \"OR-260922-017-1187\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Live tests",
+      "item": [
+        {
+          "name": "Custom event (edit me)",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "description": "Edit type, occurredAt, orderId or accountId and press Send. {{eventId}} becomes a new unique id on every send; replace it with a fixed id (e.g. evt_004) to test duplicates.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"{{eventId}}\",\n    \"type\": \"order.cleared\",\n    \"occurredAt\": \"2026-10-13T09:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Older event arrives late (expect IGNORED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('outcome is IGNORED', () => pm.expect(pm.response.json().outcome).to.eql('IGNORED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Earlier than the order's current status, so it is recorded but does not change the status.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"{{eventId}}\",\n    \"type\": \"order.inProgress\",\n    \"occurredAt\": \"2026-10-01T09:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Repeat of evt_004 (expect DUPLICATE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('outcome is DUPLICATE', () => pm.expect(pm.response.json().outcome).to.eql('DUPLICATE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Same event id as a sample event: not processed again, delivery count goes up. Run the sample sequence first.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"evt_004\",\n    \"type\": \"order.sent\",\n    \"occurredAt\": \"2026-10-12T14:03:11Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "New order for a new account",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "description": "Creates a placeholder Account (named after the friendly id) and the order. Change the ids to create more.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"{{eventId}}\",\n    \"type\": \"order.inProgress\",\n    \"occurredAt\": \"2026-11-01T10:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_new_001\",\n    \"orderFriendlyId\": \"OR-ord_new_001\",\n    \"accountId\": \"acct_new_001\",\n    \"accountFriendlyId\": \"AC-NEW-001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Forged signature (expect 401)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Runs after the collection script: overwrite the correct signature with one made from the wrong secret.",
+                  "const body = pm.variables.replaceIn(pm.request.body.raw);",
+                  "pm.request.headers.upsert({ key: 'Orders-Signature', value: CryptoJS.HmacSHA256(body, 'not-the-secret').toString(CryptoJS.enc.Hex) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Signed with the wrong secret. Nothing is stored.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"{{eventId}}\",\n    \"type\": \"order.returned\",\n    \"occurredAt\": \"2026-10-20T00:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Unknown event type (expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Correctly signed but invalid: rejected with a message naming the problem.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{instanceUrl}}/services/apexrest/orders/events",
+              "host": [
+                "{{instanceUrl}}"
+              ],
+              "path": [
+                "services",
+                "apexrest",
+                "orders",
+                "events"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"sub_a1b2c3d4e5f67890abcdef12\",\n  \"event\": {\n    \"id\": \"{{eventId}}\",\n    \"type\": \"order.teleported\",\n    \"occurredAt\": \"2026-10-20T00:00:00Z\",\n    \"version\": \"1.0\"\n  },\n  \"data\": {\n    \"orderId\": \"ord_77d1e9\",\n    \"orderFriendlyId\": \"OR-261001-017-2231\",\n    \"accountId\": \"acct_8f3c2a\",\n    \"accountFriendlyId\": \"AC-260914-017-2231\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

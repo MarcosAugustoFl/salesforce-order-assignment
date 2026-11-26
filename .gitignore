@@ -4,3 +4,6 @@
 node_modules/
 .DS_Store
 *.log
+scripts/postman/local-*.postman_environment.json
+.vscode/
+**/jsconfig.json

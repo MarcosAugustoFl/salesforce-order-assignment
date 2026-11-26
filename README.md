@@ -110,6 +110,8 @@ BAD_SIGNATURE=1 ./scripts/curl/send-event.sh cleared 2026-10-13T09:00:00Z # forg
 ./scripts/show-state.sh                                                   # orders and event history
 ```
 
+**Option C: Postman.** Run `./scripts/postman/make-environment.sh`. Then import `scripts/postman/orders-webhook.postman_collection.json` and the generated environment, and select the environment. Every request is signed automatically, so you can edit any body and press Send. The collection has the sample sequence (with expected outcomes as tests) and live-test requests.
+
 **Reset:** `sf apex run --file scripts/apex/reset-demo-data.apex --target-org order-assignment`
 
 ---
@@ -223,5 +225,6 @@ Given the 2–4 hour budget, I prioritized correctness of the event flow over th
 | `scripts/curl/send-sample-events.sh` | Sends the sample events over HTTPS |
 | `scripts/curl/send-event.sh` | Sends one custom event (any status, time, order, id) |
 | `scripts/show-state.sh` | Prints orders and event history from the org |
+| `scripts/postman/` | Postman collection (auto-signing) and environment generator |
 | `scripts/data/sample-events.ndjson` | The spec's sample events, one per line |
 | `docs/DESIGN.md` | Detailed design, error handling, code organization |
