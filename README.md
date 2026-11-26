@@ -76,7 +76,7 @@ No Remote Site Setting is needed. The deploy replaces the default **Account Layo
 
 ## Simulate events
 
-Both options send the spec's five sample events (including the duplicate and the out-of-order one) through the real endpoint code, signature check included.
+All three options send the spec's five sample events (including the duplicate and the out-of-order one) through the real endpoint code, signature check included.
 
 **Option A: anonymous Apex**
 ```bash
@@ -89,6 +89,12 @@ sf apex run --file scripts/apex/simulate-sample-events.apex --target-org order-a
 ```
 This option also sends a late, older event (expect `IGNORED`) and a tampered body (expect `401`).
 
+**Option C: Postman**
+```bash
+./scripts/postman/make-environment.sh order-assignment
+```
+Import `scripts/postman/orders-webhook.postman_collection.json` and the generated `local-order-assignment.postman_environment.json`, then select the environment. Every request is signed automatically, so any body can be edited before pressing Send. Folder *1* is the sample sequence, with expected outcomes as tests; folder *2* has live-test requests.
+
 **Expected result**
 
 | Event | Response |
@@ -99,9 +105,9 @@ This option also sends a late, older event (expect `IGNORED`) and a tampered bod
 | `evt_004` sent | `200 APPLIED` |
 | `evt_003` cleared | `200 APPLIED` |
 
-End state: `ord_77d1e9` is **sent**, `ord_52ab10` is **cleared**, and `evt_001` is stored once with a delivery count of 2. Running either script again returns `DUPLICATE` for every event.
+End state: `ord_77d1e9` is **sent**, `ord_52ab10` is **cleared**, and `evt_001` is stored once with a delivery count of 2. Sending the sequence again returns `DUPLICATE` for every event.
 
-**Send your own event** (status, occurredAt, and optionally order id and event id):
+**Send your own event** from the command line (status, occurredAt, and optionally order id and event id):
 ```bash
 ./scripts/curl/send-event.sh cleared 2026-10-13T09:00:00Z                 # newer  → APPLIED
 ./scripts/curl/send-event.sh inProgress 2026-10-01T09:00:00Z              # older  → IGNORED
@@ -109,8 +115,6 @@ End state: `ord_77d1e9` is **sent**, `ord_52ab10` is **cleared**, and `evt_001` 
 BAD_SIGNATURE=1 ./scripts/curl/send-event.sh cleared 2026-10-13T09:00:00Z # forged → 401
 ./scripts/show-state.sh                                                   # orders and event history
 ```
-
-**Option C: Postman.** Run `./scripts/postman/make-environment.sh`. Then import `scripts/postman/orders-webhook.postman_collection.json` and the generated environment, and select the environment. Every request is signed automatically, so you can edit any body and press Send. The collection has the sample sequence (with expected outcomes as tests) and live-test requests.
 
 **Reset:** `sf apex run --file scripts/apex/reset-demo-data.apex --target-org order-assignment`
 
