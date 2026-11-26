@@ -36,7 +36,7 @@ Detailed design and tradeoffs: [`docs/DESIGN.md`](docs/DESIGN.md)
 3. [What you'll see](#what-youll-see)
 4. [Key decisions](#key-decisions)
 5. [Questions I would have asked](#questions-i-would-have-asked)
-6. [What I left out](#what-i-left-out)
+6. [What I left out / would do with more time](#what-i-left-out--would-do-with-more-time)
 7. [Use of AI](#use-of-ai)
 
 ---
@@ -195,7 +195,7 @@ Because the Orders API in this exercise is fictional, the background detail sync
 
 ---
 
-## What I left out
+## What I left out / would do with more time
 
 Given the 2–4 hour budget, I prioritized correctness of the event flow over these:
 
@@ -210,9 +210,25 @@ Given the 2–4 hour budget, I prioritized correctness of the event flow over th
 
 ## Use of AI
 
-I used an AI coding assistant substantially throughout this exercise, as the brief allows. It helped draft code, tests, scripts and documentation, and speed up iteration.
+I used an AI coding assistant substantially in this exercise.
 
-I set the direction and made the key decisions: the data model, storing an event history for agents, the backfill for orders that never sent an event, `occurredAt` as the source of truth, showing order lines, and the authenticated endpoint. I also reviewed, deployed and tested everything in a Developer Edition org, and I can walk through any part of the code and the tradeoffs behind it.
+**Where:**
+- Apex implementation and tests
+- Metadata XML (objects, fields, layouts, permission sets, credentials)
+- The simulation scripts and Postman collection
+- Drafting this README and `docs/DESIGN.md`
+
+**How:** I described the requirements and the approach I wanted. The assistant generated and revised the code. I then reviewed it, deployed it to my Developer Edition org, ran the tests and the sample events, and iterated on what didn't work or didn't fit.
+
+**My decisions:**
+- the data model (`External_Order__c` with lines and an event history)
+- keeping an event history that agents can see
+- the backfill for orders that never sent an event
+- `occurredAt` as the source of truth for ordering
+- showing order lines
+- the authenticated endpoint
+
+I can walk through every part of the code and the tradeoffs behind it.
 
 ---
 
