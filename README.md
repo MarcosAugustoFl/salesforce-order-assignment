@@ -194,21 +194,23 @@ Given the 2–4 hour budget, I prioritized correctness of the event flow over th
 
 ## Repository layout
 
-```
-force-app/main/default/
-├── classes/          Apex classes and tests
-├── objects/          External Order, Line, Event, Account fields, settings type
-├── customMetadata/   Webhook secret (exercise fixture)
-├── namedCredentials/ Orders API (outbound)
-├── externalCredentials/
-├── permissionsets/   Orders_Integration, Orders_Agent
-├── layouts/          Account and External Order page layouts
-├── quickActions/     Sync Orders
-└── lwc/syncOrders/   Sync Orders button logic
-scripts/
-├── apex/             simulate-sample-events.apex, reset-demo-data.apex
-├── curl/             send-sample-events.sh
-└── data/             sample-events.ndjson
-docs/
-└── DESIGN.md         Detailed design, error handling, code organization
-```
+**Salesforce metadata** (`force-app/main/default/`)
+
+| Folder | What's inside |
+|---|---|
+| `classes/` | Apex classes and their tests |
+| `objects/` | External Order, Line and Event objects; Orders fields on Account; the settings type |
+| `customMetadata/` | Webhook secret (exercise fixture) |
+| `namedCredentials/`, `externalCredentials/` | Connection to the Orders API |
+| `permissionsets/` | `Orders_Integration` (sender), `Orders_Agent` (CX users) |
+| `layouts/`, `quickActions/`, `lwc/` | Page layouts and the Sync Orders button |
+
+**Scripts and docs**
+
+| Path | What it does |
+|---|---|
+| `scripts/apex/simulate-sample-events.apex` | Sends the sample events through anonymous Apex |
+| `scripts/apex/reset-demo-data.apex` | Deletes the demo data |
+| `scripts/curl/send-sample-events.sh` | Sends the sample events over HTTPS |
+| `scripts/data/sample-events.ndjson` | The spec's sample events, one per line |
+| `docs/DESIGN.md` | Detailed design, error handling, code organization |
